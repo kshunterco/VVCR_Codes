@@ -59,7 +59,7 @@ handles.output = hObject;
 
 % set the input variable in the global handles environment
 handles.InVar = cell2mat(varargin);
-handles.OutVar = false;
+handles.InVar.Exit = 'good';
 
 % Extract variables from structure for a more clear workflow
 Data = handles.InVar.Data;
@@ -244,7 +244,8 @@ if length(Extr.dPminIdx) == length(Extr.dPmaxIdx)
     uiresume(handles.figure1);
 else
     
-    warndlg(sprintf(' Program cannot proceed unless \n number of minima and maxima match!'));
+    warndlg(sprintf(['Program cannot proceed unless \n number of minima ' ...
+        'and maxima match!']));
 end
 
 end
@@ -276,7 +277,7 @@ function Exit_Callback(hObject, ~, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % set 1 output to false
-handles.InVar.TotNumWaves = false;
+handles.InVar.Exit = false;
 
 % update handles globally
 guidata(hObject, handles)
@@ -291,7 +292,7 @@ function Discard_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-handles.InVar.TotNumWaves = true;
+handles.InVar.Exit = true;
 
 % update handles globally
 guidata(hObject, handles)
@@ -347,10 +348,15 @@ set(handles.pressure_axes,'ButtonDownFcn', ...
     @(hObject, eventdata)GraphCallBack(hObject, eventdata, handles));
 set(handles.pressure_axes,'fontsize',11);
 
-xlabel('Time [s]','FontSize',18);
-ylabel('Pressue [mmHg]','FontSize',18);
+xlabel('Time [s]','FontSize',12);
+ylabel('Pressue [mmHg]','FontSize',14);
 legend('Pressure', 'dP/dt Max', 'dP/dt Min', 'Location', 'northoutside', ...
     'Orientation', 'horizontal');
+
+% Check max pres, rescale if it's crazy (noise in data)
+if max(Data.Pres) > 200
+    ylim([0, 200]);
+end
 
 box on
 grid on
@@ -372,9 +378,43 @@ set(handles.dpdt_axes, 'ButtonDownFcn', ...
     @(hObject, eventdata)GraphCallBack(hObject, eventdata, handles));
 set(handles.dpdt_axes,'fontsize',11);
 
-ylabel('dP/dt [mmHg/s]','FontSize',18);
-legend('dP/dt', 'Maxima', 'Minima', 'Location', 'northoutside', ...
-    'Orientation', 'horizontal');
+ylabel('dP/dt [mmHg/s]','FontSize',14);
+if isfield(Data, 'OrigdPdt')
+    legend('Unfiltered dP/dt', 'Filtered dP/dt', 'Location', 'northoutside', ...
+        'Orientation', 'horizontal');
+else
+    legend('Unfiltered dP/dt', 'Location', 'northoutside', ...
+        'Orientation', 'horizontal');
+end
+
+% Check max dP/dt, rescale if it's crazy (noise in data)
+if isfield(Data, 'OrigdPdt')
+    dpmx1 = max(Data.OrigdPdt);
+    dpmx2 = max(Data.dPdt);
+    dpmx = max([dpmx1, dpmx2]);
+    dpmn1 = min(Data.OrigdPdt);
+    dpmn2 = min(Data.dPdt);
+    dpmn = min([dpmn1, dpmn2]);
+else
+    dpmx = max(Data.dPdt);
+    dpmn = min(Data.dPdt);
+end
+dpabs = max([dpmx -dpmn]);
+
+if dpabs > 2500
+    if dpmn < -2500
+        dpmn = -2500;
+    else
+        dpmn = -Inf;
+    end
+    if dpmx > 2500
+        dpmx = 2500;
+    else
+        dpmx = Inf;
+    end
+
+    ylim([dpmn dpmx]);
+end
 
 box on
 grid on

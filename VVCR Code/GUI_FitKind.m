@@ -1,37 +1,37 @@
-function varargout = GUI_FitTakeuchi (varargin)
-% GUI_FitTakeuchi MATLAB code for GUI_FitTakeuchi.fig
-%      GUI_FitTakeuchi, by itself, creates a new GUI_FitTakeuchi 
-%      or raises the existing singleton*.
+function varargout = GUI_FitKind (varargin)
+% GUI_FitKind MATLAB code for GUI_FitKind.fig
+%      GUI_FitKind, by itself, creates a new GUI_FitKind or raises the
+%      existing singleton*.
 %
-%      H = GUI_FitTakeuchi returns the handle to a new GUI_FitTakeuchi
-%      or the handle to the existing singleton*.
+%      H = GUI_FitKind returns the handle to a new GUI_FitKind or the
+%      handle to the existing singleton*.
 %
-%      GUI_FitTakeuchi('CALLBACK',hObject,eventData,handles,...) calls
-%      the local function named CALLBACK in GUI_FitTakeuchi.M with the 
-%      given input arguments.
+%      GUI_FitKind('CALLBACK',hObject,eventData,handles,...) calls the
+%      local function named CALLBACK in GUI_FitKind.M with the given input
+%      input arguments.
 %
-%      GUI_FitTakeuchi('Property','Value',...) creates a new GUI_Fit-
-%      Takeuchi or raises the existing singleton*.  Starting from the left,
-%      property value pairs are applied to the GUI before GUI_FitTakeuchi-
+%      GUI_FitKind('Property','Value',...) creates a new GUI_FitKind
+%      or raises the existing singleton*.  Starting from the left,
+%      property value pairs are applied to the GUI before GUI_FitKind-
 %      _OpeningFcn gets called.  An unrecognized property name or invalid 
 %      value makes property application stop.  All inputs are passed to 
-%      GUI_FitTakuchi_OpeningFcn via varargin.
+%      GUI_FitKind_OpeningFcn via varargin.
 %
 %      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only
 %      one instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
-% Edit the above text to modify the response to help GUI_FitTakeuchi
+% Edit the above text to modify the response to help GUI_FitKind
 
-% Last Modified by GUIDE v2.5 23-Sep-2017 09:40:45
+% Last Modified by GUIDE v2.5 23-Sep-2017 11:44:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
 gui_State = struct('gui_Name',       mfilename, ...
                    'gui_Singleton',  gui_Singleton, ...
-                   'gui_OpeningFcn', @GUI_FitTakeuchi_OpeningFcn, ...
-                   'gui_OutputFcn',  @GUI_FitTakeuchi_OutputFcn, ...
+                   'gui_OpeningFcn', @GUI_FitKind_OpeningFcn, ...
+                   'gui_OutputFcn',  @GUI_FitKind_OutputFcn, ...
                    'gui_LayoutFcn',  [] , ...
                    'gui_Callback',   []);
 if nargin && ischar(varargin{1})
@@ -46,15 +46,15 @@ end
 % End initialization code - DO NOT EDIT
 end
 
-% --- Executes just before GUI_FitTakeuchi is made visible.
-function GUI_FitTakeuchi_OpeningFcn(hObject, eventdata, handles, varargin)
+% --- Executes just before GUI_FitKind is made visible.
+function GUI_FitKind_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% varargin   command line arguments to GUI_FitTakeuchi (see VARARGIN)
+% varargin   command line arguments to GUI_FitKind (see VARARGIN)
 
-% Choose default command line output for GUI_FitTakeuchi
+% Choose default command line output for GUI_FitKind
 handles.output = hObject;
 
 % set the input variable in the global handles environment
@@ -65,11 +65,14 @@ handles.InVar.ivIdx = cell2mat(varargin(3));
 handles.InVar.ivVal = cell2mat(varargin(4));
 handles.InVar.ivSeg = cell2mat(varargin(5));
 
+% Not sure, honestly, why this was being passed to Kind check.
+%handles.InVar.MeanTP = handles.InVar.FitK.MeanTP;
+
 handles.Cycle = 1;
-handles.CycMx = length(handles.InVar.ivIdx.Ps1);
+handles.CycMx = length(handles.InVar.ivIdx.Ps2);
 set(handles.CycleMinus, 'Enable', 'off');
 
-Rsq = handles.InVar.FitT.Rsq;
+Rsq = handles.InVar.FitK.Rsq;
 Cyc = handles.Cycle;
 set(handles.CycleInd, 'String', ['Cycle #' num2str(Cyc, '%02i')]);
 set(handles.RsqTxt,   'String', ['Rsq = ' num2str(Rsq(Cyc),'%6.4f')]);
@@ -77,22 +80,23 @@ set(handles.RsqTxt,   'String', ['Rsq = ' num2str(Rsq(Cyc),'%6.4f')]);
 % Extract Data, Indices/Values, and Fit Segments from passed structures.
 Data = handles.InVar.Data;
 Plot = handles.InVar.Plot;
+ivIdx = handles.InVar.ivIdx;
 ivVal = handles.InVar.ivVal;
 ivSeg = handles.InVar.ivSeg;
-FitT = handles.InVar.FitT;
+FitK = handles.InVar.FitK;
 
 % store first fit output into output structure.
-handles.OutVar.FitT = handles.InVar.FitT;
-handles.OutVar.Exit = 'Good';
+handles.OutVar.FitK = FitK;
+handles.OutVar.Exit = 'good';
 
 % plot pressure, sinusoid fits
-[handles] = takeuchi_plot_single (Data, ivSeg, FitT, Plot, handles);
-[handles] = open_all_plots (Data, ivSeg, FitT, Plot, handles);
+[handles] = kind_plot_single (Data, ivIdx, ivSeg, FitK, Plot, handles);
+[handles] = open_all_plots (Data, ivIdx, ivSeg, FitK, Plot, handles);
 
 % Update handles.
 guidata(hObject, handles);
 
-% UIWAIT makes GUI_FitTakeuchi wait for user response (see UIRESUME)
+% UIWAIT makes GUI_FitKind wait for user response (see UIRESUME)
 uiwait(handles.figure1);
 end
 
@@ -101,14 +105,14 @@ function MainGraphCallback(hObject, eventdata, handles)
 
 % get the current point
 cp(1,:) = [eventdata.IntersectionPoint(1), eventdata.IntersectionPoint(2)];
-disp('GUI_FitTakeuchi>MainGraphCallback:');
+disp('GUI_FitKind>MainGraphCallback:');
 disp(['    Time:     ',num2str(cp(1))]);
 disp(['    Pressure: ',num2str(cp(2))]);
 
 end
 
 % --- Outputs from this function are returned to the command line.
-function varargout = GUI_FitTakeuchi_OutputFcn(hObject, ~, handles) 
+function varargout = GUI_FitKind_OutputFcn(hObject, ~, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -128,7 +132,7 @@ function CyclePlus_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-Rsq = handles.OutVar.FitT.Rsq;
+Rsq = handles.OutVar.FitK.Rsq;
 Cyc = handles.Cycle;
 
 Cyc = Cyc + 1;
@@ -146,13 +150,14 @@ handles.Cycle = Cyc;
 % Extract Data, Indices/Values, and Fit Segments from passed structures.
 Data = handles.InVar.Data;
 Plot = handles.InVar.Plot;
+ivIdx = handles.InVar.ivIdx;
 ivSeg = handles.InVar.ivSeg;
-FitT = handles.OutVar.FitT;
+FitK = handles.OutVar.FitK;
 
 % plot pressure, sinusoid fits, update indicator
-[handles] = takeuchi_plot_single (Data, ivSeg, FitT, Plot, handles);
+[handles] = kind_plot_single (Data, ivIdx, ivSeg, FitK, Plot, handles);
 if ishandle(handles.figure2)
-    [handles] = takeuchi_plot_all (Data, ivSeg, FitT, Plot, handles);
+    [handles] = kind_plot_all (Data, ivIdx, ivSeg, FitK, Plot, handles);
 end
 
 % Update handles.
@@ -167,7 +172,7 @@ function CycleMinus_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-Rsq = handles.OutVar.FitT.Rsq;
+Rsq = handles.OutVar.FitK.Rsq;
 Cyc = handles.Cycle;
 
 Cyc = Cyc - 1;
@@ -185,13 +190,14 @@ handles.Cycle = Cyc;
 % Extract Data, Indices/Values, and Fit Segments from passed structures.
 Data = handles.InVar.Data;
 Plot = handles.InVar.Plot;
+ivIdx = handles.InVar.ivIdx;
 ivSeg = handles.InVar.ivSeg;
-FitT = handles.OutVar.FitT;
+FitK = handles.OutVar.FitK;
 
 % plot pressure, sinusoid fits, update indicator
-[handles] = takeuchi_plot_single (Data, ivSeg, FitT, Plot, handles);
+[handles] = kind_plot_single (Data, ivIdx, ivSeg, FitK, Plot, handles);
 if ishandle(handles.figure2)
-    [handles] = takeuchi_plot_all (Data, ivSeg, FitT, Plot, handles);
+    [handles] = kind_plot_all (Data, ivIdx, ivSeg, FitK, Plot, handles);
 end
 
 % Update handles.
@@ -210,19 +216,20 @@ set(handles.figure1, 'pointer', 'watch');
 drawnow;
 
 WaveRm = handles.Cycle;
-disp(['GUI_FitTakeuchi>Remove: wave ' num2str(WaveRm, '%02i') ...
-    ' marked removed']);
+disp(['GUI_FitKind>Remove: wave ' num2str(WaveRm, '%02i') ...
+    ' is being removed']);
 
-handles.OutVar.FitT.BadCyc(WaveRm) = 1;
+handles.OutVar.FitK.BadCyc(WaveRm) = 1;
 
 % Plot the results
+ivIdx = handles.InVar.ivIdx;
 ivSeg = handles.InVar.ivSeg;
-FitT = handles.OutVar.FitT;
+FitK = handles.OutVar.FitK;
 Data = handles.InVar.Data;
 Plot = handles.InVar.Plot;
-[handles] = takeuchi_plot_single (Data, ivSeg, FitT, Plot, handles);
+[handles] = kind_plot_single (Data, ivIdx, ivSeg, FitK, Plot, handles);
 if ishandle(handles.figure2)
-    [handles] = takeuchi_plot_all (Data, ivSeg, FitT, Plot, handles);
+    [handles] = kind_plot_all (Data, ivIdx, ivSeg, FitK, Plot, handles);
 end
 
 set(handles.Include, 'Enable', 'on');
@@ -233,6 +240,7 @@ guidata(hObject,handles);
 set(handles.figure1, 'pointer', 'arrow');
 
 end
+
 
 % --- Executes on button press in Done.
 function Done_Callback(~, ~, handles)
@@ -278,13 +286,13 @@ function Exit_Callback(hObject, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% keep in mind when the exit button is pressed, the current
-% patient, i, will not be evaluated
-                
 if ishandle(handles.figure2)
     close(handles.figure2);
 end
 
+% keep in mind when the exit button is pressed, the current
+% patient, i, will not be evaluated
+                
 % set output to false
 handles.OutVar.Exit = false;
 
@@ -317,7 +325,7 @@ end
 
 % --- Executes on button press in Include.
 function Include_Callback(hObject, ~, handles)
-% hObject    handle to Include (see GCBO)
+% hObject    handle to Undo (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -325,20 +333,21 @@ function Include_Callback(hObject, ~, handles)
 set(handles.figure1, 'pointer', 'watch');
 drawnow;
 
-disp(['GUI_FitTakeuchi>Include: wave ' num2str(handles.Cycle, ...
-   '%02i') ' included in final analysis']);
+disp(['GUI_FitKind>Include: wave ' num2str(handles.Cycle, '%02i') ...
+    ' included in final analysis']);
 
-handles.OutVar.FitT.BadCyc(handles.Cycle) = 0;
-
+handles.OutVar.FitK.BadCyc(handles.Cycle) = 0;
+        
 % Extract Data, Values, Fit Segments, Plots, & Segments from handles.
-FitT = handles.OutVar.FitT;
+FitK = handles.OutVar.FitK;
 Data = handles.InVar.Data;
 Plot = handles.InVar.Plot;
+ivIdx = handles.InVar.ivIdx;
 ivSeg = handles.InVar.ivSeg;
 
-[handles] = takeuchi_plot_single (Data, ivSeg, FitT, Plot, handles);
+[handles] = kind_plot_single (Data, ivIdx, ivSeg, FitK, Plot, handles);
 if ishandle(handles.figure2)
-    [handles] = takeuchi_plot_all (Data, ivSeg, FitT, Plot, handles);
+    [handles] = kind_plot_all (Data, ivIdx, ivSeg, FitK, Plot, handles);
 end
 
 set(handles.Include, 'Enable', 'off');
@@ -353,7 +362,7 @@ set(handles.figure1, 'pointer', 'arrow');
 end
 
 % --- Function that updates the main plot
-function [handles] = takeuchi_plot_single (Data, ivSeg, Fit, Plot, handles);
+function [handles] = kind_plot_single (Data, ivIdx, ivSeg, Fit, Plot, handles);
 
 cycid = handles.Cycle;
 
@@ -368,14 +377,14 @@ end
 axes(handles.pressure_axes);
 
 h = plot(Data.Time_D,Data.Pres_D,'b', ...
-         Plot.iv1PlotTime,Plot.iv1PlotPres,'ro');
+         Plot.iv2PlotTime,Plot.iv2PlotPres,'ro');
 set(h, 'HitTest', 'off');
 
 set(handles.pressure_axes,'ButtonDownFcn', ...
     @(hObject, eventdata)MainGraphCallback(hObject, eventdata, handles));
 set(handles.pressure_axes,'fontsize',12);
 
-title('Takeuchi Sinusoidal Fitting','FontSize',16);
+title('Kind Sinusoidal Fitting','FontSize',16);
 xlabel('Time [s]','FontSize',14);
 ylabel('Pressure [mmHg]','FontSize',14);
 
@@ -383,32 +392,32 @@ hold on;
 
 mystp = Data.time_step/2;
 
-% Attain the sinusoid fit for this cycle (so Pmax can be visualized)
+% Offset to normalize start time to zero.
+zero = Data.Time_D(ivSeg.iv2Time(cycid).PosIso(1,1));
+
 % obtain the range of time of each peak, then normalize to zero
-FitSineTime = Data.Time_D(ivSeg.iv1Time(cycid).PosIso(1,1)):mystp: ...
-    Data.Time_D(ivSeg.iv1Time(cycid).NegIso(end,1));
+FitSineTime = Data.Time_D(ivSeg.iv2Time(cycid).PosIso(1,1)):mystp: ...
+    Data.Time_D(ivSeg.iv2Time(cycid).NegIso(end,1))+Plot.iv2TShift(cycid);
 
-% plug into Naeiji equation that was just solved for; normalize range
-% to start at one (as was done in fitting).
-FitSinePres = Fit.RCoef(cycid,1) + Fit.RCoef(cycid,2)* ...
-        sin(Fit.RCoef(cycid,3)*(FitSineTime-FitSineTime(1)) + ...
-        Fit.RCoef(cycid,4));
-      
+% plug into Kind equation
+dPtimes = [Data.Time(ivIdx.dPmax2(cycid))-zero ...
+    Data.Time(ivIdx.dPmin2(cycid))-zero Data.time_per];
+FitSinePres = data_kind (Fit.RCoef(cycid,:), FitSineTime-zero, dPtimes);
+
 % find time point corresponding to Pmax
-[~, Idx] = min(abs(FitSinePres-Fit.PIsoMax(cycid)));
-
+[~, Idx] = min(abs(FitSinePres-Fit.RCoef(cycid,1)));
 PmaxT = FitSineTime(Idx);
 
 if Fit.BadCyc(cycid)
-    plot(FitSineTime, FitSinePres, 'r--', PmaxT, Fit.PIsoMax(cycid), 'rx');
+    plot(FitSineTime, FitSinePres, 'r--', PmaxT, Fit.RCoef(cycid,1), 'rx');
 else
-    plot(FitSineTime, FitSinePres, 'k--', PmaxT, Fit.PIsoMax(cycid), 'go');
+    plot(FitSineTime, FitSinePres, 'k--', PmaxT, Fit.RCoef(cycid,1), 'go');
 end
 
 % Set reasonable plot limits.
 xmn = FitSineTime(1)-0.1;
 xmx = FitSineTime(end)+0.1;
-ymx = max(Fit.PIsoMax)+5;
+ymx = max(Fit.RCoef(:,1))+5;
 
 xlim([xmn xmx]);
 if ymx > 300
@@ -418,7 +427,7 @@ else
 end
 
 legend('Pressure', 'Isovolumic Points', 'Sinusoid Fit', 'Pmax', ...
-    'Location', 'southoutside', 'Orientation', 'horizontal');
+    'Location','southoutside', 'Orientation', 'horizontal');
 
 box on;
 grid on;
@@ -435,11 +444,12 @@ function AllPlotsGraph_Callback(hObject, ~, handles)
 % Extract Data, Indices/Values, and Fit Segments from passed structures.
 Data = handles.InVar.Data;
 Plot = handles.InVar.Plot;
+ivIdx = handles.InVar.ivIdx;
 ivSeg = handles.InVar.ivSeg;
-FitT = handles.OutVar.FitT;
+FitK = handles.OutVar.FitK;
 
 % Create all pressures figure
-handles = open_all_plots (Data, ivSeg, FitT, Plot, handles);
+handles = open_all_plots (Data, ivIdx, ivSeg, FitK, Plot, handles);
 
 % Update handles.
 guidata(hObject, handles);
@@ -451,7 +461,7 @@ function SubGraphCallback(hObject, eventdata, handles)
 
 cp(1,:) = [eventdata.IntersectionPoint(1), eventdata.IntersectionPoint(2)];
 
-Rsq = handles.OutVar.FitT.Rsq;
+Rsq = handles.OutVar.FitK.Rsq;
 Data = handles.InVar.Data;
 ivIdx = handles.InVar.ivIdx;
 
@@ -485,13 +495,14 @@ if ~isempty(WaveNumPosRm) && ~isempty(WaveNumNegRm)
         Data = handles.InVar.Data;
         Plot = handles.InVar.Plot;
         ivSeg = handles.InVar.ivSeg;
-        FitT = handles.OutVar.FitT;
+        ivIdx = handles.InVar.ivIdx;
+        FitK = handles.OutVar.FitK;
 
-        [handles] = takeuchi_plot_single (Data, ivSeg, FitT, Plot, handles);
-        [handles] = takeuchi_plot_all (Data, ivSeg, FitT, Plot, handles);
+        [handles] = kind_plot_single (Data, ivIdx, ivSeg, FitK, Plot, handles);
+        [handles] = kind_plot_all (Data, ivIdx, ivSeg, FitK, Plot, handles);
 
-        % update figure1 handles
-        guidata(handles.figure1, handles);
+        % update global handles
+        guidata(handles.figure1,handles);
 
     end
 end
@@ -499,13 +510,13 @@ end
 end
 
 % --- Creates or brings up figure2
-function [handles] = open_all_plots (Data, ivSeg, Fit, Plot, handles);
+function [handles] = open_all_plots (Data, ivIdx, ivSeg, Fit, Plot, handles);
 
 f2h = findall(0, 'tag', 'FAllPlots');
 
 if isempty(f2h)
 
-    handles.figure2 = figure ('Name', 'Takeuchi All Pressure Waveforms',...
+    handles.figure2 = figure ('Name', 'Kind All Pressure Waveforms',...
         'Units', 'characters',...
         'Position', [30 35 140 30],...
         'NumberTitle', 'off', ...
@@ -515,10 +526,10 @@ if isempty(f2h)
 
     h = axes ('Position', [0.1 0.12 0.85 0.80]);
 
-    handles = takeuchi_plot_all (Data, ivSeg, Fit, Plot, handles);
+    handles = kind_plot_all (Data, ivIdx, ivSeg, Fit, Plot, handles);
 
 else
-
+ 
     figure(f2h);
 
 end
@@ -526,12 +537,12 @@ end
 end
 
 % --- Pushes data to axes in figure2
-function [handles] = takeuchi_plot_all (Data, ivSeg, Fit, Plot, handles);
+function [handles] = kind_plot_all (Data, ivIdx, ivSeg, Fit, Plot, handles);
 
 axes(handles.figure2.CurrentAxes);
 
 h = plot(Data.Time_D,Data.Pres_D,'b', ...
-         Plot.iv1PlotTime,Plot.iv1PlotPres,'ro');
+         Plot.iv2PlotTime,Plot.iv2PlotPres,'ro');
 set(h, 'HitTest', 'off');
 
 set(handles.figure2.CurrentAxes,'ButtonDownFcn', ...
@@ -544,39 +555,42 @@ ylabel('Pressure [mmHg]','FontSize',12);
 hold on;
 
 mystp = Data.time_step/2;
-mysz = length(ivSeg.iv1Time);
+mysz = length(ivSeg.iv2Time);
 PmaxT = zeros(mysz,1);
 
 % Attain the sinusoid fit for all points (so Pmax can be visualized
 for i = 1:mysz
 
+    % Offset to normalize start time to zero.
+    zero = Data.Time_D(ivSeg.iv2Time(i).PosIso(1,1));
+    
     % obtain the range of time of each peak, then normalize to zero
-    FitSineTime = Data.Time_D(ivSeg.iv1Time(i).PosIso(1,1)):mystp: ...
-        Data.Time_D(ivSeg.iv1Time(i).NegIso(end,1));
+    FitSineTime = Data.Time_D(ivSeg.iv2Time(i).PosIso(1,1)):mystp: ...
+        Data.Time_D(ivSeg.iv2Time(i).NegIso(end,1))+Plot.iv2TShift(i);
 
-    % plug into Naeiji equation that was just solved for; normalize range
-    % to start at one (as was done in fitting).
-    FitSinePres = Fit.RCoef(i,1) + Fit.RCoef(i,2)*sin(Fit.RCoef(i,3)* ...
-      (FitSineTime-FitSineTime(1)) + Fit.RCoef(i,4));
+    % plug into Kind equation
+    dPtimes = [Data.Time(ivIdx.dPmax2(i))-zero ...
+        Data.Time(ivIdx.dPmin2(i))-zero Data.time_per];
+    FitSinePres = data_kind (Fit.RCoef(i,:), FitSineTime-zero, dPtimes);
 
     % find time point corresponding to Pmax
-    [~, Idx] = min(abs(FitSinePres-Fit.PIsoMax(i)));
+    [~, Idx] = min(abs(FitSinePres-Fit.RCoef(i,1)));
 
     PmaxT(i) = FitSineTime(Idx);
 
     if Fit.BadCyc(i)
-        plot(FitSineTime, FitSinePres, 'r--', PmaxT(i), Fit.PIsoMax(i), 'rx');
+        plot(FitSineTime, FitSinePres, 'r--', PmaxT(i), Fit.RCoef(i,1), 'rx');
     else
-        plot(FitSineTime, FitSinePres, 'k--', PmaxT(i), Fit.PIsoMax(i), 'go');
+        plot(FitSineTime, FitSinePres, 'k--', PmaxT(i), Fit.RCoef(i,1), 'go');
     end
 end
 
-ymx = max(Fit.PIsoMax)+5;
+ymx = max(Fit.RCoef(:,1))+5;
 
 % Bound the current cycle.
 cycid = handles.Cycle;
-xmn = Data.Time_D(ivSeg.iv1Time(cycid).PosIso(1,1))-0.05;
-xmx = Data.Time_D(ivSeg.iv1Time(cycid).NegIso(end,1))+0.05;
+xmn = Data.Time_D(ivSeg.iv2Time(cycid).PosIso(1,1))-0.05;
+xmx = Data.Time_D(ivSeg.iv2Time(cycid).NegIso(end,1))+0.05;
 plot([xmn xmn], [0, ymx], 'r--');
 plot([xmx xmx], [0, ymx], 'r--');
 
