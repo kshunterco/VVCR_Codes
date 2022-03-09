@@ -227,7 +227,7 @@ if RunV
     VStr.FitV = FitV;
     if GUI
         VStr.Plot = PlotV;
-        RetV = GUI_FitVanderpool_APP (VStr, Data, ivIdx, ivVal, ivSeg);
+        RetV = GUI_FitVanderpool_AppV2 (VStr, Data, ivIdx, ivVal, ivSeg);
         [Res, Ret] = interpret_str (RetV, 'GUI_FitVanderpool', FileName, Res);
         if Ret
             return;
